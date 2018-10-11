@@ -1,14 +1,20 @@
 src=$(wildcard *.c)
-targets=$(patsubst %.c, %, $(src))
+obj=$(patsubst %.c, %.o, $(src))
 
 CC=gcc
 CFLAGS= -Wall -g
 
-all:$(targets)
+all:server client
 
-$(targets):%:%.c
-	$(CC) $< -o $@ $(CFLAGS)
+server:server.o wrap.o
+	$(CC) $^ -o $@ $(CFLAGS)
+
+client:client.o wrap.o
+	$(CC) $^ -o $@ $(CFLAGS)
+
+$(obj):%.o:%.c
+	$(CC) -c $< $(CFLAGS)
 
 .PHONY:clean all
 clean:
-	rm -rf $(targets)
+	rm -rf $(obj) server client
