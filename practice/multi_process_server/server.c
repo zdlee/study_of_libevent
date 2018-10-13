@@ -1,13 +1,20 @@
 #include "wrap.h"
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <signal.h>
 
 #define SERVER_PORT 7777
+
+void do_sigchild(int num) {
+    while(waitpid(-1, NULL, WNOHANG) > 0)
+        ;
+}
 
 int main(int argc, char const *argv[])
 {
@@ -17,11 +24,17 @@ int main(int argc, char const *argv[])
     socklen_t client_addr_len;
     int pid;
     char buf[BUFSIZ], str[INET_ADDRSTRLEN];
+    struct sigaction waitchild;
+
+    waitchild.sa_handler = do_sigchild;
+    sigemptyset(&waitchild.sa_mask);
+    waitchild.sa_flags = 0;
+    sigaction(SIGCHLD, &waitchild, 0);
 
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);
 
     //不必等待2MSL时间
-    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    //setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     bzero(&server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
