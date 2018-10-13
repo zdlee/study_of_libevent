@@ -9,7 +9,6 @@
 #include <pthread.h>
 
 #define SERVER_PORT 7777
-#define MAX_THREAD 256
 
 struct client_info {
     int client_fd;
@@ -47,7 +46,7 @@ int main(int argc, char const *argv[])
     int listenfd, connfd;
     int opt = 1, i = 0;
     socklen_t client_addr_len;
-    struct client_info clients[MAX_THREAD];
+    struct client_info client;
     pthread_t tid;
 
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);
@@ -68,10 +67,10 @@ int main(int argc, char const *argv[])
     while(1) {
         client_addr_len = sizeof(client_addr);
         connfd = Accept(listenfd, (struct sockaddr*) &client_addr, &client_addr_len);
-        clients[i].client_fd = connfd;
-        clients[i].client_addr = client_addr;
+        client.client_fd = connfd;
+        client.client_addr = client_addr;
         
-        pthread_create(&tid, NULL, do_work, &clients[i]);
+        pthread_create(&tid, NULL, do_work, &client);
         pthread_detach(tid);
         i++;
     }
