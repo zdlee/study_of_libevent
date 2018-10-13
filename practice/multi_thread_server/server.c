@@ -72,6 +72,7 @@ int main(int argc, char const *argv[])
         clients[i].client_addr = client_addr;
         
         pthread_create(&tid, NULL, do_work, &clients[i]);
+        pthread_detach(tid);
         i++;
     }
 
