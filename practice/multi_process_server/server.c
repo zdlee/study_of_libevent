@@ -34,7 +34,7 @@ int main(int argc, char const *argv[])
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);
 
     //不必等待2MSL时间
-    //setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     bzero(&server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
