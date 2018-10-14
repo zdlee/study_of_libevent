@@ -7,8 +7,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <pthread.h>
+#include "threadpool.h"
 
 #define SERVER_PORT 7777
+#define MAX_CONN 1024
 
 struct client_info {
     int client_fd;
@@ -46,8 +48,13 @@ int main(int argc, char const *argv[])
     int listenfd, connfd;
     int opt = 1, i = 0;
     socklen_t client_addr_len;
-    struct client_info client;
+    struct client_info clients[MAX_CONN];
     pthread_t tid;
+
+    threadpool_t* pool = threadpool_create(5, 15, 30);
+    if(pool == NULL) {
+        perr_exit("init threadpool failed\n");
+    }
 
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);
 
@@ -67,13 +74,24 @@ int main(int argc, char const *argv[])
     while(1) {
         client_addr_len = sizeof(client_addr);
         connfd = Accept(listenfd, (struct sockaddr*) &client_addr, &client_addr_len);
-        client.client_fd = connfd;
-        client.client_addr = client_addr;
+        clients[i].client_fd = connfd;
+        clients[i].client_addr = client_addr;
         
-        pthread_create(&tid, NULL, do_work, &client);
-        pthread_detach(tid);
+        if(threadpool_add(pool, do_work, (void*) &clients[i]) != 0) {
+            perr_exit("add threadpool failed\n");
+        }
+
         i++;
+        if(i == MAX_CONN) {
+            i = 0;
+        }
+
+        //pthread_create(&tid, NULL, do_work, &client);
+        //pthread_detach(tid);
     }
+    
+    threadpool_destroy(pool);
+    close(listenfd);
 
     return 0;
 }

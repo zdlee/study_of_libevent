@@ -2,11 +2,11 @@ src=$(wildcard *.c)
 obj=$(patsubst %.c, %.o, $(src))
 
 CC=gcc
-CFLAGS= -Wall -g
+CFLAGS= -Wall -g -lpthread
 
 all:server client
 
-server:server.o wrap.o
+server:server.o wrap.o threadpool.o
 	$(CC) $^ -o $@ $(CFLAGS)
 
 client:client.o wrap.o
